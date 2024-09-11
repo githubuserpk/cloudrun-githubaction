@@ -63,25 +63,36 @@ jobs:
 
       - name: Delete old images from Artifact Registry
         run: |
-          # Get the digest of the image currently used by the Cloud Run service
-          CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region us-central1 --format='value(spec.template.spec.containers[0].image)')
-          CURRENT_DIGEST=${CURRENT_DIGEST#*@}
+          # Set the region
+          REGION=us-central1
 
-          # List all image digests except the one currently in use
-          DIGESTS_TO_DELETE=$(gcloud artifacts docker images list ${{ env.DOCKER_IMAGE_URL }} \
+          # Try to get the digest of the image currently used by the Cloud Run service
+          if ! CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(spec.template.spec.containers[0].image)' 2>/dev/null); then
+            echo "Warning: Could not fetch current image digest. Proceeding with cleanup of old images."
+            CURRENT_DIGEST=""
+          else
+            CURRENT_DIGEST=${CURRENT_DIGEST#*@}
+            echo "Current image digest: $CURRENT_DIGEST"
+          fi
+
+          # List all image digests
+          ALL_DIGESTS=$(gcloud artifacts docker images list ${{ env.DOCKER_IMAGE_URL }} \
             --format='get(digest)' \
             --sort-by=~CREATE_TIME \
-            --limit=unlimited \
-            | grep -v $CURRENT_DIGEST \
-            | tail -n +2)
+            --limit=unlimited)
+
+          # Keep the latest image and the current image (if different)
+          DIGESTS_TO_DELETE=$(echo "$ALL_DIGESTS" | awk 'NR>1' | grep -v "$CURRENT_DIGEST" || true)
 
           # Delete each digest
-          for DIGEST in $DIGESTS_TO_DELETE
-          do
-            echo "Deleting image with digest: $DIGEST"
-            gcloud artifacts docker images delete ${{ env.DOCKER_IMAGE_URL }}@$DIGEST --quiet
-          done
+          if [ -n "$DIGESTS_TO_DELETE" ]; then
+            echo "Deleting old images:"
+            echo "$DIGESTS_TO_DELETE" | while read -r DIGEST; do
+              echo "Deleting image with digest: $DIGEST"
+              gcloud artifacts docker images delete ${{ env.DOCKER_IMAGE_URL }}@$DIGEST --quiet
+            done
+          else
+            echo "No old images to delete."
+          fi
         continue-on-error: true
-
-          
 

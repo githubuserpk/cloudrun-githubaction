@@ -34,6 +34,17 @@ jobs:
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
 
+      - name: Create Artifact Registry Repository
+        run: |
+          if ! gcloud artifacts repositories describe cloudrun-githubaction --location=us-central1 --project=${{ env.PROJECT_ID }}; then
+            gcloud artifacts repositories create cloudrun-githubaction \
+              --repository-format=docker \
+              --location=us-central1 \
+              --project=${{ env.PROJECT_ID }}
+          else
+            echo "Repository already exists"
+          fi
+
       - name: Build and Push Docker Image
         run: |
           docker build -t ${{ env.DOCKER_IMAGE_URL }}:latest -f Dockerfile.prod .

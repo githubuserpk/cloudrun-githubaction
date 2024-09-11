@@ -58,3 +58,30 @@ jobs:
             --platform managed \
             --region us-east1 \
             --allow-unauthenticated
+
+
+
+      - name: Delete old images from Artifact Registry
+        run: |
+          # Get the digest of the image currently used by the Cloud Run service
+          CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region us-east1 --format='value(spec.template.spec.containers[0].image)')
+          CURRENT_DIGEST=${CURRENT_DIGEST#*@}
+
+          # List all image digests except the one currently in use
+          DIGESTS_TO_DELETE=$(gcloud artifacts docker images list ${{ env.DOCKER_IMAGE_URL }} \
+            --format='get(digest)' \
+            --sort-by=~CREATE_TIME \
+            --limit=unlimited \
+            | grep -v $CURRENT_DIGEST \
+            | tail -n +2)
+
+          # Delete each digest
+          for DIGEST in $DIGESTS_TO_DELETE
+          do
+            echo "Deleting image with digest: $DIGEST"
+            gcloud artifacts docker images delete ${{ env.DOCKER_IMAGE_URL }}@$DIGEST --quiet
+          done
+        continue-on-error: true
+
+          
+

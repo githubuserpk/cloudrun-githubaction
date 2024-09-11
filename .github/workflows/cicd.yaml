@@ -3,7 +3,7 @@ name: Deploy to Cloud Run
 env:
   SERVICE_NAME: custom-fastapi-service
   PROJECT_ID: pkdeltaai-06
-  DOCKER_IMAGE_URL: us-central1-docker.pkg.dev/h-t-d-a-f-a-t-g-c-r/custom-fastapi/custom-fastapi
+  DOCKER_IMAGE_URL: us-central1-docker.pkg.dev/pkdeltaai-06/custom-fastapi/custom-fastapi
 
 on:
   push:

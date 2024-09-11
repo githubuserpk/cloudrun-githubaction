@@ -29,5 +29,5 @@ app.add_middleware(
 @app.get('/')
 def health():
     return {
-        "message": "OK - gha cr!"
+        "message": "OK - gha cr - hi EV!"
     }

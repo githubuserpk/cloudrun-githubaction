@@ -60,39 +60,27 @@ jobs:
             --allow-unauthenticated
 
 
+      - name: Set default region
+        run: gcloud config set compute/region us-central1
 
-      - name: Delete old images from Artifact Registry
+      - name: List and Delete Images
         run: |
-          # Set the region
-          REGION=us-central1
 
-          # Try to get the digest of the image currently used by the Cloud Run service
-          if ! CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(spec.template.spec.containers[0].image)' 2>/dev/null); then
-            echo "Warning: Could not fetch current image digest. Proceeding with cleanup of old images."
-            CURRENT_DIGEST=""
-          else
-            CURRENT_DIGEST=${CURRENT_DIGEST#*@}
-            echo "Current image digest: $CURRENT_DIGEST"
-          fi
+          # List all images in the repository
+          images=$(gcloud artifactregistry images list --project=$project_id --repository=$repository_name --format="json")
 
-          # List all image digests
-          ALL_DIGESTS=$(gcloud artifacts docker images list ${{ env.DOCKER_IMAGE_URL }} \
-            --format='get(digest)' \
-            --sort-by=~CREATE_TIME \
-            --limit=unlimited)
+          # Parse the JSON output to extract image names
+          image_names=$(echo "$images" | jq -r '.[].name')
 
-          # Keep the latest image and the current image (if different)
-          DIGESTS_TO_DELETE=$(echo "$ALL_DIGESTS" | awk 'NR>1' | grep -v "$CURRENT_DIGEST" || true)
+          # Sort images by creation time (descending)
+          sorted_images=$(echo "$image_names" | jq -r '. | sort_by(. | split("/")[-1] | tonumber) | reverse[]')
 
-          # Delete each digest
-          if [ -n "$DIGESTS_TO_DELETE" ]; then
-            echo "Deleting old images:"
-            echo "$DIGESTS_TO_DELETE" | while read -r DIGEST; do
-              echo "Deleting image with digest: $DIGEST"
-              gcloud artifacts docker images delete ${{ env.DOCKER_IMAGE_URL }}@$DIGEST --quiet
-            done
-          else
-            echo "No old images to delete."
-          fi
-        continue-on-error: true
+          # Delete all images except the latest
+          for image in $sorted_images; do
+            if [[ "$image" != "$sorted_images[0]" ]]; then
+              gcloud artifactregistry images delete "$image" --project=$project_id --repository=$repository_name
+              echo "Deleted image: $image"
+            fi
+          done
+ 
 

@@ -64,7 +64,7 @@ jobs:
       - name: Delete old images from Artifact Registry
         run: |
           # Get the digest of the image currently used by the Cloud Run service
-          CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region us-east1 --format='value(spec.template.spec.containers[0].image)')
+          CURRENT_DIGEST=$(gcloud run services describe $SERVICE_NAME --region us-central1 --format='value(spec.template.spec.containers[0].image)')
           CURRENT_DIGEST=${CURRENT_DIGEST#*@}
 
           # List all image digests except the one currently in use

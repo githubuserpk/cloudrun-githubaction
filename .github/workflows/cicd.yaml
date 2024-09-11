@@ -60,6 +60,9 @@ jobs:
             --allow-unauthenticated
 
 
+      - name: Install gcloud-artifact-registry
+        run: pip install google-cloud-artifact-registry
+
       - name: Set default region
         run: gcloud config set compute/region us-central1
 

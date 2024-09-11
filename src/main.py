@@ -23,7 +23,7 @@ app.add_middleware(
 
 
 
-app.include_router(smokeTest.router, prefix="/smoke-test")
+#app.include_router(smokeTest.router, prefix="/smoke-test")
 
 # Define the API endpoints
 @app.get('/')

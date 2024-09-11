@@ -66,5 +66,6 @@ jobs:
 
       - name: Run Python script
         run: python scripts/cleanup_images.py
+        
  
 

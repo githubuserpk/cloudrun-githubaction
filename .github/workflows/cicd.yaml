@@ -59,6 +59,10 @@ jobs:
             --region us-east1 \
             --allow-unauthenticated
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-auth google-cloud-artifact-registry
 
       - name: Run Python script
         run: python scripts/cleanup_images.py

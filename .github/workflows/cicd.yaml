@@ -69,8 +69,11 @@ jobs:
       - name: List and Delete Images
         run: |
 
+
+
+
           # List all images in the repository
-          images=$(gcloud artifactregistry images list --project=$project_id --repository=$repository_name --format="json")
+          images=$(gcloud artifacts docker images list     us-central1-docker.pkg.dev/pkdeltaai-06/cloudrun-githubaction --format="json)
 
           # Parse the JSON output to extract image names
           image_names=$(echo "$images" | jq -r '.[].name')

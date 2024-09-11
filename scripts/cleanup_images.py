@@ -37,9 +37,13 @@ if __name__ == "__main__":
     import os
     
     # Get these values from environment variables
-    project_id = os.environ.get('PROJECT_ID')
-    location = os.environ.get('LOCATION')
-    repository = os.environ.get('REPOSITORY')
+    # project_id = os.environ.get('pkdeltaai-06')
+    # location = os.environ.get('')
+    # repository = os.environ.get('REPOSITORY')
+
+    project_id = "pkdeltaai-06"
+    location = "us-central1"
+    repository = "cloudrun-githubaction"
 
     if not all([project_id, location, repository]):
         print("Error: Missing required environment variables.")

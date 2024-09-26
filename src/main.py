@@ -29,5 +29,5 @@ app.add_middleware(
 @app.get('/')
 def health():
     return {
-        "message": "OK - gha cr - hi EV!, 26 sep 2024"
+        "message": "OK - gha cr - hi EV!, 26 sep 2024, II=13.02"
     }
